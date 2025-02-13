@@ -8,7 +8,7 @@ Experimental code. To preserve flexibility, download the full *PyBathHail* repos
 
 Exact version numbers of the Python packages used for developing `pybathhail` modules are listed in `setup.py`. Other versions, especially much newer versions, can cause compatibility issues, particularly due to the many changes in `NumPy` and `pandas` between different version numbers. Therefore, it may be best to create a virtual environment with the exact versions of Python packages listed in 'setup.py' and then run the *PyBathHail* postprocessing analysis inside this Python environment. 
 ### Installation
-The `pybathhail` Python package can be installed by downloading the *PyBathHail* repository and running `pip install .`, for example. But to preserve flexibility and avoid (some) compatibility issues, it is best to run the retrieval inside the downloaded repository structure, i.e., without prior installation of the Python package.
+The `pybathhail` Python package can be installed by downloading the *PyBathHail* repository and running `pip install .`, for example. But to preserve flexibility and avoid (some) compatibility issues, it is best to run the retrieval inside the downloaded repository structure, i.e., without prior installation.
 ## Usage
 All retrieval and analysis methods are collected in the `pybathhail` directory. The retrieval can be executed by running `hail_retrieval.py` with the desired retrieval settings selected in `hail_config.yaml` (and radar signal postprocessing settings in `postprocessing_config.yaml`, if needed/desired). 
 
