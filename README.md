@@ -1,4 +1,4 @@
-## About PyBathSpectra
+## About PyBathHail
 ### Contents
 The *PyBathHail* repository contains Python code and example files for retrieving the hail size distribution (HSD) and estimating the vertical wind speed from Doppler spectra recorded with DWD's operational C-band radar (vertically pointing) birdbath scan, as described by Gergely et al. (2025).
 ### License
