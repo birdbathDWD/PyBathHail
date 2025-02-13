@@ -1,0 +1,127 @@
+## Settings for retrieval of hail size distributions from Doppler spectra
+# to start retrieval with these settings, run: python3 hail_retrieval.py
+
+
+##### Input
+
+# Selected time of birdbath scan (= timestamp in filename)
+# Format: 'yyyy-mm-dd HH:MM:SS'
+birdbath_time:
+#- '2021-04-30 15:09:41'
+- '2021-06-29 14:06:20'
+#- '2023-06-22 14:00:00'
+
+
+##### Signal postprocessing before hail retrieval
+
+# Run postprocessing routine before retrieving hail size distributions?
+# Needed to unfold + isolate hail Doppler spectra, if not yet done
+postprocessing: True
+
+# Current settings for postprocessing routine in .yaml config file
+# only used if postprocessing is selected (True), but HAS TO EXIST
+postprocessing_settings: './postprocessing_config_hailstorm_B.yaml'
+
+
+##### Hail specifics and radar retrieval options for testing
+
+# Radar wavelength [mm] for reflectivity calculations
+# small differences between all DWD C-band radars
+radar_wavelength: 53.1547
+
+# Directory of non-postprocessing inputs
+# backscatter results and model_data (if needed) are stored here
+inputs_dir: './input/'
+
+# Lowest hail height [m] above radar for retrieval
+# based on bimodal Doppler spectra in postprocessing results
+hail_minheight: 425
+# Highest hail height [m] above radar for retrieval
+# based on bimodal Doppler spectra in postprocessing results
+hail_maxheight: 1500
+
+# Assumed hail terminal fall velocity-to-diameter (v-D) relationship
+# 'H20' (Heymsfield et al., 2020), 'MH80' (Matson and Huggins, 1980),
+# or 'G75' (Gokhale, 1975)
+vD_relation: 'H20'
+
+# Minimum hail size of hail size distributions (= diameter in mm)
+hail_minsize: 5
+
+# Type of shifting method for correcting Doppler spectra for vertical wind
+# options are 'no_shift' (uncorrected), 'constant' shift,
+# 'max_rain' (anchoring at theoretical max rain fall velocity),
+# and 'min_hail_H20', 'min_hail_MH80', 'min_hail_G75' (anchoring at
+# theoretical min hail fall velocity from different v-D relationships,
+# corresponding to vD_relation parameter selected above)
+shift_type: 'min_hail_H20'
+
+# Predetermined shift value (constant), only relevant for 'constant' shift_type
+constant_shift: 0.0
+
+# Noise mode for determining the noise reflectivity level
+# 'midpoint', 'elbow', or 'minimum'
+noise_mode: 'midpoint'
+
+# Range [m/s] beyond elbow for linear fits of reflectivity spectra
+# to mitigate impact of background on 'true' trend of reflectivity spectra
+elbow_range: 1.0
+
+# Directory of modeled hail radar backscatter cross sections
+# inside 'inputs_dir' given above,
+# and containing diameters as 'hail_diameters_mm.txt' and corresponding hail
+# radar backscatter cross sections in 'radx_hail_mm2.txt'
+radx_dir: './scattering_xsections/'
+
+
+##### Icon 'Meteogramm' parameters, if ICON needed
+# Only relevant if correcting Doppler spectra based on 'max_rain' fall velocity
+
+# Meteogramm location (at or close to radar site)
+location: 'Hohenpeissenberg'
+
+# Directory where ICON Meteogramme are stored
+# inside 'inputs_dir' given above
+icon_data_dir: './ICON_model_data/'
+
+# Unpack .gz ICON Meteogramm-files or use already unpacked?
+icon_unpack: True
+
+
+##### Further analysis of retrieved hail size distributions
+
+# Aspect ratio of 'average' hailstone used for scattering calculations
+# needed for calculating characteristics of hail size distributions
+aspect_ratio: 0.75
+
+# Ice fraction of 'average' hailstone used for scattering calculations
+# needed for calculating characteristics of hail size distributions
+ice_fraction: 0.85
+
+# Perform detailed evaluation of retrieved hail size distributions?
+# For manually selected subset of hail heights (s. 'height_selection')
+detailed_analysis: True
+
+# Directory where .txt file containing subset of hail heights is stored
+# for detailed analysis and comparisons of retrieved and fitted HSDs;
+# this file HAS TO BE CREATED before any further analysis of retrievals
+# and entries must be elements of interval [hail_minheight, hail_maxheight]
+# inside 'inputs_dir' given above
+height_selection: './analysis_heights/'
+
+
+##### Retrieval and analysis plots and outputs
+
+# Plot hail retrieval results, incl. intermediate steps?
+plot_hail: True
+
+# Save retrieval results as .txt files?
+save_hail: True
+
+# Directory where to save output plots
+# Relative path from where hail_retrieval.py is executed
+plot_dir: './output/retrieval_plots/'
+
+# Directory where to save (some) retrieval results as .txt files
+# Relative path from where hail_retrieval.py is executed
+save_dir: './output/retrieval_results/'

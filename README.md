@@ -1,6 +1,6 @@
-## About PyBathHail
+## About PyBathSpectra
 ### Contents
-The *PyBathHail* repository contains Python code and example files for retrieving the hail size distributions and associated vertical air motion from Doppler spectra recorded with DWD's operational C-band radar (vertically pointing) birdbath scan, as described by Gergely et al. (2025)
+The *PyBathHail* repository contains Python code and example files for retrieving the full hail size distributions from Doppler spectra recorded with DWD's operational C-band radar (vertically pointing) birdbath scan, as described by ????
 ### License
 Distributed under the MIT License. See `LICENSE` for more information.
 ## Getting started
