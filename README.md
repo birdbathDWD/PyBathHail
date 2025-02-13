@@ -4,7 +4,7 @@ The *PyBathHail* repository contains Python code and example files for retrievin
 ### License
 Distributed under the MIT License. See `LICENSE` for more information.
 ## Getting started
-Experimental code. To preserve flexibility, download the full *PyBathHail* repository (latest release), unzip, and run the hail retrieval from this directory. Also needs pre-installed `pybathspectra` package or downloaded `pybathspectra` directory and copied into working directory. 
+Experimental code. To preserve flexibility, download the full *PyBathHail* repository (latest release), unzip, and run the hail retrieval from this directory. Also needs pre-installed `pybathspectra` package or downloaded `pybathspectra` directory copied into working directory. 
 
 Exact version numbers of the Python packages used for developing `pybathhail` modules are listed in `setup.py`. Other versions, especially much newer versions, can cause compatibility issues, particularly due to the many changes in `NumPy` and `pandas` between different version numbers. Therefore, it may be best to create a virtual environment with the exact versions of Python packages listed in 'setup.py' and then run the *PyBathHail* postprocessing analysis inside this Python environment. 
 ### Installation
