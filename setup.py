@@ -30,7 +30,7 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 setup(
     name='PyBathHail',
-    version='0.1.0',
+    version='0.1.1',
     description='Retrieval of hail size distributions from DWD birdbath scan',
     long_description=long_description,
     # Content types: text/plain, text/x-rst, and text/markdown
