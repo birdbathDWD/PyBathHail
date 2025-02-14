@@ -291,6 +291,14 @@ def get_properties(hsd_retrievals, hsd_fits, scattering_averages):
 def hsd_stats(hsd_data, hail_properties, heights_subset):
     """
     Determine range of HSDs and calculate (some) statistics.
+    
+    Does not give correct output for full event HSD when option
+    'shift_type: max_rain' is selected in 'hail_config.yaml' settings,
+    because variable spectra shifts for 'max_rain' result in wrong
+    normalization for the HSD sum of event. 
+    This does not affect the original retrieval of all HSDs at individual
+    hail heights (and corresponding hail characteristics), only the 
+    combined (summed and normalized) HSD for hail event.
     """
     
     # Select only retrievals corresponding to selected heights_subset
@@ -384,48 +392,6 @@ def hsd_fit_sum(range_statistics):
         exp_linfits=linfits)
 
     return hsd_event_fits
-
-
-def fits_parameters(fit_data, hail_properties, heights_subset):
-    """
-    Determine interesting relations of fits to retrieved HSDs.
-    
-    N0-to-Lambda power-law relationship (s. Grieser and Hill, 2019),
-    Lambda(Dmax) power-law relationship, and product of HSD slope parameter
-    and maximum hail size (Lambda*Dmax > 5??, s. Ulbrich and Atlas, 1982).
-    """
-    
-    N0_Lam_powerlaw = dict()
-    Lam_Dmax_powerlaw = dict()
-    Lam_x_Dmax = dict()
-    for key in fit_data:
-        # Only do this for exponential fits, not for gamma fit
-        if key == 'gamma_fits':
-            continue
-        N0_Lam = fit_data[key]['fit_N0_Lambda']
-        Dmax = hail_properties[key]['hsd_properties'][:,1]
-        # Select only data corresponding to selected heights_subset
-        selection = np.isin(fit_data[key]['hsd_heights'], heights_subset)
-        N0_Lam_sel = N0_Lam[selection,:]
-        Dmax_sel = Dmax[selection]
-        # Fit power law as N0-to-Lambda relationship
-        N0_Lam_parameters = fitting.power_fit(
-            -N0_Lam_sel[:,1], N0_Lam_sel[:,0], fit_mode='loglog')
-        N0_Lam_powerlaw[key] = N0_Lam_parameters
-        # Fit power law as Lambda-to-Dmax relationship
-        Lam_Dmax_parameters = fitting.power_fit(
-            Dmax_sel, -N0_Lam_sel[:,1], fit_mode='loglog')
-        Lam_Dmax_powerlaw[key] = Lam_Dmax_parameters
-        # Product Lambda * Dmax (> 5 ????)
-        Lam_x_Dmax[key] = -N0_Lam_sel[:,1] * Dmax_sel
-
-    # Collect results in compact meaningful dictionary
-    all_info = dict(
-        N0_Lambda_relation=N0_Lam_powerlaw,
-        Lambda_Dmax_relation=Lam_Dmax_powerlaw,
-        Lambda_x_Dmax_product=Lam_x_Dmax)
-    
-    return all_info
 
 
 def retrievals_comparison(fit_data, hail_properties, heights_subset):
@@ -522,12 +488,6 @@ def get_details(
     # Exp. fits to hail event sum (for this slected subset of hail heights)
     range_sum = hsd_fit_sum(stats)
     
-    # Characteristic parameters and power-law fits for fitted HSDs
-    fit_info = fits_parameters(
-        hsd_fits,
-        hsd_properties,
-        analysis_heights)
-    
     # Comparison of bin-by-bin retrievals and exp/gammafits for hail properties
     bin_vs_fits = retrievals_comparison(
         hsd_fits,
@@ -553,7 +513,6 @@ def get_details(
     hail_details = dict(
         statistics=stats,
         event_fits=range_sum,
-        fits_relations=fit_info,
         hsd_binned_vs_fits=bin_vs_fits,
         vertical_wind=wind_inferred,
         hsd_fits_parameters=fit_parameters,
