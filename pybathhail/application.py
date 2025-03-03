@@ -307,7 +307,10 @@ def hsd_stats(hsd_data, hail_properties, heights_subset):
     hsds = hsd_data['hsd_frequencies'][selection,:]
     
     # Interpolate all HSDs to same diameters to calculate range stat statistics
-    diameters_grid = np.linspace(5, 100, 951)
+    diameter_min = np.round(np.nanmin(diameters), decimals=1)
+    diameter_max = 100
+    steps = int((diameter_max - diameter_min) * 10 + 1)
+    diameters_grid = np.linspace(diameter_min, diameter_max, steps)
     hsd_grid_all = np.full((hsds.shape[0], len(diameters_grid)), np.nan)
     for height in heights:
         diameters_all = diameters[heights==height,:].ravel()
