@@ -29,6 +29,10 @@ postprocessing_settings: './postprocessing_config_hailstorm_A.yaml'
 # small differences between all DWD C-band radars
 radar_wavelength: 53.1547
 
+# Radar height level [m above mean sea level]
+# needed for atmospheric pressure correction with altitude above DWD radar
+radar_level: 1006.2
+
 # Directory of non-postprocessing inputs
 # backscatter results and model_data (if needed) are stored here
 inputs_dir: './input/'

@@ -34,7 +34,7 @@ def shift_spectra(
         heights_vector, doppler_velocities, spectral_reflectivities,
         mode_indices, icon_data, hail_heights=(425.0, 1500.0),
         shift_type='min_hail_H20', minimum_hailsize=5,
-        constant_shift=0.0, height_idx=None):
+        constant_shift=0.0, radar_height=1006.2, height_idx=None):
     """
     Shift (linear) reflectivity spectra and corresponding Doppler velocities.
     
@@ -180,8 +180,9 @@ def shift_spectra(
             velocity_shift_vector[heights_valid==height] = vel_shift
         # Terminal fall velocity [m/s] according to H20 at smallest hail     
         elif shift_type == 'min_hail_H20':
-            vD_min_H20 = helper.hail_size_to_velocity(minimum_hailsize,
-                                                      vD_relation='H20')
+            vD_min_H20 = helper.hail_size_to_velocity(
+                minimum_hailsize, heights_above_radar=height,
+                alt_radar=radar_height, vD_relation='H20')
             # Determine appropriate value to shift all hail velocities
             h_sel = (heights_vector == height)
             hail_minvel_idx = mode_indices[h_sel, 1]
@@ -191,8 +192,9 @@ def shift_spectra(
             velocity_shift_vector[heights_valid==height] = vel_shift
         # Terminal fall velocity [m/s] according to MH80 at smallest hail   
         elif shift_type == 'min_hail_MH80':
-            vD_min_MH80 = helper.hail_size_to_velocity(minimum_hailsize,
-                                                       vD_relation='MH80')
+            vD_min_MH80 = helper.hail_size_to_velocity(
+                minimum_hailsize, heights_above_radar=height,
+                alt_radar=radar_height, vD_relation='MH80')
             # Determine appropriate value to shift all hail velocities
             h_sel = (heights_vector == height)
             hail_minvel_idx = mode_indices[h_sel, 1]
@@ -202,8 +204,9 @@ def shift_spectra(
             velocity_shift_vector[heights_valid==height] = vel_shift
         # Terminal fall velocity [m/s] according to G75 at smallest hail    
         elif shift_type == 'min_hail_G75':
-            vD_min_G75 = helper.hail_size_to_velocity(minimum_hailsize,
-                                                      vD_relation='G75')
+            vD_min_G75 = helper.hail_size_to_velocity(
+                minimum_hailsize, heights_above_radar=height,
+                alt_radar=radar_height, vD_relation='G75')
             # Determine appropriate value to shift all hail velocities
             h_sel = (heights_vector == height)
             hail_minvel_idx = mode_indices[h_sel, 1]
@@ -540,7 +543,7 @@ def truncate_spectra(
 def hail_size_distribution(
         fall_velocities, spectral_dBZ, heights_valid,
         radx_diameters, radx_xsections, radar_wavelength=53.1547,
-        radar_factor=0.93, vD_mode='H20'):
+        radar_height=1006.2, radar_factor=0.93, vD_mode='H20'):
     """
     Retrieve hail size distributions from hail reflectivity [dBZ] spectra.
     
@@ -560,7 +563,8 @@ def hail_size_distribution(
     
     # Transform hail fall velocity to diameters with selected v-D relationship
     retrieved_diameters = helper.hail_velocity_to_size(
-        -fall_velocities, vD_relation=vD_mode)
+        -fall_velocities, heights_above_radar=heights_valid,
+        alt_radar=radar_height, vD_relation=vD_mode)
     # Corresponding reflectivities in LINEAR units
     spectral_reflectivities = 10 ** (0.1 * spectral_dBZ)
     
@@ -624,6 +628,7 @@ def retrieve_hsd(
     size_min = retrieval_settings['hail_minsize']
     shift = retrieval_settings['shift_type']
     shift_const = retrieval_settings['constant_shift']
+    radar_alt = retrieval_settings['radar_level']
     noise = retrieval_settings['noise_mode']
     elbow_distance= retrieval_settings['elbow_range']
     # Analyzed range of original 'eye-balled' hail levels
@@ -643,7 +648,7 @@ def retrieve_hsd(
         spectra_heights, spectra_velocities, spectra_reflectivity,
         mode_indices, model_data, hail_heights=height_range,
         shift_type=shift, minimum_hailsize=size_min,
-        constant_shift=shift_const, height_idx=None)
+        constant_shift=shift_const, radar_height=radar_alt, height_idx=None)
     (hail_spectra_lin, hail_spectra_dBZ,
      hail_vel_shifted, heights_valid, vertical_wind) = shift_output
     
@@ -691,7 +696,7 @@ def retrieve_hsd(
     hsd_scaled, hsd_diameters = hail_size_distribution(
         hail_velocities_cut, hail_dBZ_spectra_cut,
         heights_valid, radx_diameters, radx,
-        radar_wavelength=wavelength,
+        radar_wavelength=wavelength, radar_height=radar_alt,
         vD_mode=vd_relation)
     
     # Collect relevant results (in dictionary)
@@ -700,6 +705,7 @@ def retrieve_hsd(
         hsd_sizes=hsd_diameters,
         hsd_heights=heights_valid,
         vD_relation=vd_relation,
+        radar_level=radar_alt,
         hsd_dBZ_spectra=hail_dBZ_spectra_cut,
         hsd_velocities_spectra=hail_velocities_cut,
         vertical_windspeeds=vertical_wind)

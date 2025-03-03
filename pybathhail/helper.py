@@ -44,6 +44,7 @@ def split_hail_settings(all_settings):
     # Hail specifics and radar retrieval options
     hail_specifics = dict(
             radar_wavelength=all_settings['radar_wavelength'],
+            radar_level=all_settings['radar_level'],
             hail_minheight=all_settings['hail_minheight'],
             hail_maxheight=all_settings['hail_maxheight'],
             vD_relation=all_settings['vD_relation'],
@@ -70,14 +71,18 @@ def split_hail_settings(all_settings):
     return signal_settings, hail_specifics, model_settings, analysis_settings
 
 
-def hail_velocity_to_size(terminal_velocity, vD_relation='H20'):
+def hail_velocity_to_size(
+        terminal_velocity, heights_above_radar=500,
+        alt_radar=1006.2, vD_relation='H20'):
     """
     Determine hail diameters [mm] from hail terminal fall velocities [m/s].
     
     Based on relationship by Heymsfield et al. (2020) 'H20', yielding slow fall
     speeds for given hail size, or Matson and Huggins (1980) 'MH80', yielding
     intermediate fall speeds, or Gokhale (1975) 'G75', giving the fastest
-    fallspeeds for the same hail sizes.  
+    fallspeeds for the same hail sizes.
+    With pressure correction with altitude by Heymsfield and Westbrook (2010),
+    Heymsfield et al. (2018).
     """
     
     # Heymsfield et al. (2020)
@@ -98,21 +103,40 @@ def hail_velocity_to_size(terminal_velocity, vD_relation='H20'):
         exponent = 0.5
     else:
         raise ValueError('Invalid vD_relation in hail_velocity_to_size().')
-        
+    
+    # Correction for altitude
+    # Altitudes in m
+    altitude = heights_above_radar + alt_radar
+    # Pressure in mbar = hPa 
+    # (standard atmosphere, good approximation to ICON pressures, deviations
+    # generally less than 1 % in lower atmosphere < altitude = 3.5 km a.s.l.)
+    pressure = ((44331.514 - altitude) / 11880.516)**(1/0.1902632)
+    # Correction factor for terminal velocity (Heymsfield and Westbrook, 2010)
+    correction = (1000 / pressure)**0.55
+    # Reverse correction
+    if np.size(heights_above_radar) == 1:
+        velocity = terminal_velocity / correction
+    else:
+        velocity = (terminal_velocity.T / correction).T
+    
     # Calculate diameters in mm
-    diameters_mm = 10 * (terminal_velocity / prefactor) ** (1 / exponent)
+    diameters_mm = 10 * (velocity / prefactor) ** (1 / exponent)
      
     return diameters_mm
 
  
-def hail_size_to_velocity(diameters_in_mm, vD_relation='H20'):
+def hail_size_to_velocity(
+        diameters_in_mm, heights_above_radar=500,
+        alt_radar=1006.2, vD_relation='H20'):
     """
     Determine hail terminal fall velocities [m/s] from hail diameters [mm].
     
     Based on relationship by Heymsfield et al. (2020) 'H20', yielding slow fall
     speeds for given hail size, or Matson and Huggins (1980) 'MH80', yielding
     intermediate fall speeds, or Gokhale (1975) 'G75', giving the fastest
-    fallspeeds for the same hail sizes.    
+    fallspeeds for the same hail sizes.
+    With pressure correction with altitude by Heymsfield and Westbrook (2010),
+    Heymsfield et al. (2018).
     """
     
     # Heymsfield et al. (2020)
@@ -138,8 +162,23 @@ def hail_size_to_velocity(diameters_in_mm, vD_relation='H20'):
         
     # Hail velocity-diameter relationship
     velocity = prefactor * (diameters_in_mm / 10)**exponent
-        
-    return velocity
+    
+    # Correction for altitude
+    # Altitudes in m
+    altitude = heights_above_radar + alt_radar
+    # Pressure in mbar = hPa 
+    # (standard atmosphere, good approximation to ICON pressures, deviations
+    # generally less than 1 % in lower atmosphere < altitude = 3.5 km a.s.l.)
+    pressure = ((44331.514 - altitude) / 11880.516)**(1/0.1902632)
+    # Correction factor for terminal velocity (Heymsfield and Westbrook, 2010)
+    correction = (1000 / pressure)**0.55
+    # Correced terminal fall velocity v(D)
+    if np.size(heights_above_radar) == 1:
+        velocity_corr = velocity * correction
+    else:
+        velocity_corr = (velocity.T * correction).T
+    
+    return velocity_corr
 
 
 def get_nearest_date(date_list, search_date, select=0):

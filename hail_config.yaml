@@ -16,7 +16,7 @@ birdbath_time:
 
 # Run postprocessing routine before retrieving hail size distributions?
 # Needed to unfold + isolate hail Doppler spectra, if not yet done
-postprocessing: True
+postprocessing: False
 
 # Current settings for postprocessing routine in .yaml config file
 # only used if postprocessing is selected (True), but HAS TO EXIST
@@ -28,6 +28,10 @@ postprocessing_settings: './postprocessing_config.yaml'
 # Radar wavelength [mm] for reflectivity calculations
 # small differences between all DWD C-band radars
 radar_wavelength: 53.1547
+
+# Radar height level [m above mean sea level]
+# needed for atmospheric pressure correction with altitude above DWD radar
+radar_level: 1006.2
 
 # Directory of non-postprocessing inputs
 # backscatter results and model_data (if needed) are stored here

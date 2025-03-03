@@ -42,6 +42,7 @@ def fit_hsd(hsd_retrievals):
     binned_hsd = hsd_retrievals['hsd_frequencies']
     heights_valid = hsd_retrievals['hsd_heights']
     vD_method = hsd_retrievals['vD_relation']
+    radar_alt = hsd_retrievals['radar_level']
     vertical_wind = hsd_retrievals['vertical_windspeeds']
     
     # Exponential fit as linear fit in log-space
@@ -64,6 +65,7 @@ def fit_hsd(hsd_retrievals):
         hsd_heights=heights_valid,
         fit_N0_Lambda=logfit_NO_Lambda,
         vD_relation=vD_method,
+        radar_level=radar_alt,
         vertical_windspeeds=vertical_wind)
     linfit = dict(
         hsd_frequencies=linfit_hsd,
@@ -71,6 +73,7 @@ def fit_hsd(hsd_retrievals):
         hsd_heights=heights_valid,
         fit_N0_Lambda=linfit_NO_Lambda,
         vD_relation=vD_method,
+        radar_level=radar_alt,
         vertical_windspeeds=vertical_wind)
     gammafit = dict(
         hsd_frequencies=gammafit_hsd,
@@ -78,6 +81,7 @@ def fit_hsd(hsd_retrievals):
         hsd_heights=heights_valid,
         fit_N0_Lambda=gammafit_NO_Lambda_mu,
         vD_relation=vD_method,
+        radar_level=radar_alt,
         vertical_windspeeds=vertical_wind)
     hsd_fits = dict(
         exp_logfits=logfit,
@@ -115,8 +119,11 @@ def hsd_characteristics(hsd_data, scattering_averages):
     binned_hsd = hsd_data['hsd_frequencies']
     heights_valid = hsd_data['hsd_heights']
     vD_mode = hsd_data['vD_relation']
+    radar_height = hsd_data['radar_level']
     # Calculate hail fall velocities from diameters
-    velocities = helper.hail_size_to_velocity(diameters, vD_relation=vD_mode)
+    velocities = helper.hail_size_to_velocity(
+        diameters, heights_above_radar=heights_valid,
+        alt_radar=radar_height, vD_relation=vD_mode)
     
     # Initialize output array for all 13 properties:
     hsd_properties = np.full((binned_hsd.shape[0], 14), np.nan)
@@ -291,43 +298,50 @@ def get_properties(hsd_retrievals, hsd_fits, scattering_averages):
 def hsd_stats(hsd_data, hail_properties, heights_subset):
     """
     Determine range of HSDs and calculate (some) statistics.
-    
-    Does not give correct output for full event HSD when option
-    'shift_type: max_rain' is selected in 'hail_config.yaml' settings,
-    because variable spectra shifts for 'max_rain' result in wrong
-    normalization for the HSD sum of event. 
-    This does not affect the original retrieval of all HSDs at individual
-    hail heights (and corresponding hail characteristics), only the 
-    combined (summed and normalized) HSD for hail event.
     """
     
     # Select only retrievals corresponding to selected heights_subset
     selection = np.isin(hsd_data['hsd_heights'], heights_subset)
+    heights = hsd_data['hsd_heights'][selection]
     diameters = hsd_data['hsd_sizes'][selection,:]
     hsds = hsd_data['hsd_frequencies'][selection,:]
     
-    # Unique hail diameters
-    diameters_round = diameters.round(decimals=3)
-    diameters_unique= np.unique(diameters_round)
-    diameters_unique = diameters_unique[~np.isnan(diameters_unique)]
+    # Interpolate all HSDs to same diameters to calculate range stat statistics
+    diameters_grid = np.linspace(5, 100, 951)
+    hsd_grid_all = np.full((hsds.shape[0], len(diameters_grid)), np.nan)
+    for height in heights:
+        diameters_all = diameters[heights==height,:].ravel()
+        hsd_all = hsds[heights==height,:].ravel()
+        diameters_valid = diameters_all[~np.isnan(diameters_all)]
+        hsd_valid = hsd_all[~np.isnan(diameters_all)]
+        sort_index = np.argsort(diameters_valid)
+        diameters_sorted = diameters_valid[sort_index]
+        hsd_sorted = hsd_valid[sort_index]
+        hsd_grid = np.interp(
+            diameters_grid, diameters_sorted, hsd_sorted,
+            left=None, right=np.nan)
+        hsd_grid_all[heights==height,:len(hsd_grid)] = hsd_grid
+
     # Compute 6 statistics for full hsd range at each hail diameter
     stats = 6
-    range_stats = np.full((len(diameters_unique), stats+1), np.nan)
-    for diameter in diameters_unique:
-        range_idx = np.where(diameters_round==diameter)
-        range_hsd = hsds[range_idx]
+    range_stats = np.full((len(diameters_grid), stats+1), np.nan)
+    for diameter in diameters_grid:
+        d_sel = (diameters_grid == diameter)
+        range_hsd = hsd_grid_all[:,d_sel]
         range_min = np.nanmin(range_hsd)
         range_max = np.nanmax(range_hsd)
         range_mean = np.nanmean(range_hsd)
         range_median = np.nanmedian(range_hsd)
         range_std = np.nanstd(range_hsd)
-        range_sum = np.nansum(range_hsd) / hsds.shape[0]
+        range_sum = np.nansum(range_hsd) / hsd_grid_all.shape[0]
         # Collect results
-        stats_vector = np.array(
+        range_stats_vector = np.array(
             [diameter, range_min, range_max, range_mean,
              range_median, range_std, range_sum])
-        d_sel = (diameters_unique == diameter)
-        range_stats[d_sel, :len(stats_vector)] = stats_vector
+        stats_length = len(range_stats_vector)
+        range_stats[d_sel, :stats_length] = range_stats_vector
+    # Remove useless data rows from hsd range stats (avoids conflicts later)
+    range_stats = range_stats[~np.isnan(range_stats).any(axis=1)]
     
     # Some simple statistics for corresponding hail properties
     props_stats = dict()

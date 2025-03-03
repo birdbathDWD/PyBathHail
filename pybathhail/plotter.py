@@ -52,12 +52,16 @@ def plot_reflectivity_spectra(dBZ, velocities, time, plot_path='./plots/'):
     
     # Figure
     fig = plt.figure(figsize=(16,6), dpi=None, tight_layout=True)
-    figname = plot_path + 'hsd_truncated_reflectivity_spectra_' + dateandtime + '.png'
+    figname = (
+        plot_path + 'hsd_truncated_reflectivity_spectra_'
+        + dateandtime + '.png'
+    )
     ax1 = fig.add_subplot(111)
     ax1.plot(plot_velocities, plot_dBZ, '-', c='tab:grey')
     ax1.set_xlim([0, 40])
     ax1.grid(linestyle=':', linewidth=0.5)
-    ax1.set_xlabel('(positive) Hail fall velocity (corrected + truncated spectra) [m s$^{-1}$]', fontsize=13)
+    ax1.set_xlabel('(positive) Hail fall velocity (corrected'
+                   + ' + truncated spectra) [m s$^{-1}$]', fontsize=13)
     ax1.set_ylabel(r'Spectral reflectivity [dBZ per bin]', fontsize=13)
     fig.savefig(figname)
 
@@ -216,7 +220,8 @@ def plot_wind_retrievals(windspeed, heights, time, plot_path='./plots/'):
     fig = plt.figure(figsize=(8,6), dpi=None, tight_layout=True)
     figname = plot_path + 'vertical_wind_profile_' + dateandtime + '.png'
     ax1 = fig.add_subplot(111)
-    ax1.plot(windspeed, heights/1000, 'o', c='tab:blue', label='vertical wind speed')
+    ax1.plot(windspeed, heights/1000, 'o', c='tab:blue',
+             label='vertical wind speed')
     #ax1.set_xlim([-10,5])
     ax1.grid(linestyle=':', linewidth=0.5)
     ax1.set_xlabel('Vertical air motion [m s$^{-1}$]', fontsize=13)
