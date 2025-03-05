@@ -81,9 +81,9 @@ hail_data.retrieving(
     model_set)
 
 
-###### Further analysis of retrieval results (for subset of hail heights)
+##### Further analysis of retrieval results (for subset of hail heights)
 
-# Fits to hail size distributions and hail characteristics, if selected
+# Fits to hail size distributions and hail characteristics
 hail_data.analyzing(
     hail_time,
     analysis_set)

@@ -16,7 +16,7 @@ The `input` directory is a collection of birdbath-scan example data for 3 hailst
 
 3 birdbath-scan examples are included as `input`: 2 at MHP radar in southern Germany, 1 at FLD radar in central Germany (see cited article for details).
 ## Citing the code
-Gergely, M., Ockenfuß, P., Seeger, F., Kneifel, S., Frech, M., 2025(?): Retrieval of the hail size distribution and vertical air motion from weather radar Doppler spectra, *J. Atmos. Oceanic Technol.*, submitted 2025, LINK_GOES_HERE
+Gergely, M., Ockenfuß, P., Seeger, F., Kneifel, S., Frech, M., 2025(?): Retrieval of the hail size distribution and vertical air motion from weather radar Doppler spectra, *J. Atmos. Oceanic Technol.*, submitted March 2025, LINK_GOES_HERE
 ## Acknowledegments
 The work is supported by the German Research Foundation (DFG) 'PROM' priority program SPP-2115 (https://www2.meteo.uni-bonn.de/spp2115) and the German Meteorological Service (Deutscher Wetterdienst, DWD, https://www.dwd.de/DE/Home/home_node.html).
 <!-- ## References -->
