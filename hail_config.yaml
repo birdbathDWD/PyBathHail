@@ -16,7 +16,7 @@ birdbath_time:
 
 # Run postprocessing routine before retrieving hail size distributions?
 # Needed to unfold + isolate hail Doppler spectra, if not yet done
-postprocessing: True
+postprocessing: False
 
 # Current settings for postprocessing routine in .yaml config file
 # only used if postprocessing is selected (True), but HAS TO EXIST
@@ -107,6 +107,10 @@ ice_fraction: 0.85
 # For manually selected subset of hail heights (s. 'height_selection')
 # HAS TO BE 'TRUE' (for now)
 detailed_analysis: True
+
+# Include estimated vertical windspeeds in calculated hail characteristics?
+# If FALSE, effect of vertical wind is not included.
+include_wind: True
 
 # Directory where .txt file containing subset of hail heights is stored
 # for detailed analysis and comparisons of retrieved and fitted HSDs;

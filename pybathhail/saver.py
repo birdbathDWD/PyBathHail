@@ -44,6 +44,8 @@ def save_retrievals(detailed_results, time, save_path='./results/'):
     event_diameters = hsd_range['hsd_range_stats'][:,0]
     event_hsd = hsd_range['hsd_range_stats'][:,-1]
     vertical_wind = detailed_results['vertical_wind']
+    hail_properties = detailed_results['detailed_hail_properties']
+    hsd_properties = hail_properties['hsd_retrievals']['hsd_properties']
     # Datetime object as reasonable string for file names
     dateandtime = time.strftime('%Y%m%d_%H%M%S')
     
@@ -58,8 +60,11 @@ def save_retrievals(detailed_results, time, save_path='./results/'):
     # Vertical windspeeds [m s-1] for hail height levels
     wind_name = save_path + 'vertical_wind_' + dateandtime + '.txt'
     np.savetxt(wind_name, vertical_wind)
+    # Hail characteristics as 2D arrays (heights x 14 characteristics)
+    properties_name = save_path + 'hail_characteristics_' + dateandtime + '.txt'
+    np.savetxt(properties_name, hsd_properties)
+    # Sum(mary) of all hail heights, i.e. for hail event, normalized correctly 
     d_name = save_path + 'event_hail_diameters_' + dateandtime + '.txt'
     e_name = save_path + 'event_hail_size_distribution_' + dateandtime + '.txt'
-    # Sum(mary) of all hail heights, i.e. for hail event, normalized correctly
     np.savetxt(d_name, event_diameters)
     np.savetxt(e_name, event_hsd)

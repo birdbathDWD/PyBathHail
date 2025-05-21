@@ -230,7 +230,7 @@ def gamma_fit(
         # Run Gamma fit to data; first guess and fit
         pin = [np.exp(polfit[1]), polfit[0], 0]
         gamma_fit = fit_gamma(
-            x_hailsizes, y_hailsizes, pin, max_iterations=20000)
+            x_hailsizes, y_hailsizes, pin, max_iterations=40000)
         
         # Calculate series of fitted values for plotting
         fitcalcs_gamma = (gamma_fit[0] * x_hailsizes**gamma_fit[2]

@@ -108,6 +108,10 @@ ice_fraction: 0.85
 # HAS TO BE 'TRUE' (for now)
 detailed_analysis: True
 
+# Include estimated vertical windspeeds in calculated hail characteristics?
+# If FALSE, effect of vertical wind is not included.
+include_wind: True
+
 # Directory where .txt file containing subset of hail heights is stored
 # for detailed analysis and comparisons of retrieved and fitted HSDs;
 # this file HAS TO BE CREATED before any further analysis of retrievals

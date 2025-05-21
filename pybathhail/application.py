@@ -91,7 +91,8 @@ def fit_hsd(hsd_retrievals):
     return hsd_fits
 
 
-def hsd_characteristics(hsd_data, scattering_averages):
+def hsd_characteristics(
+        hsd_data, aspect_ratio, ice_fraction, vertical_wind=False):
     """
     Calculate 14 characteristic hail properties from hail size distributions.
     
@@ -105,15 +106,13 @@ def hsd_characteristics(hsd_data, scattering_averages):
     mean diameter [mm], Kinetic energy at energy-weighted mean diameter [J],
     Kinetic energy at maximum diameter [J].
     
-    Only includes hail (terminal) fall velocity in its current implementation,
-    and NO VERTICAL AIR MOTION!
+    If vertical_wind=False: Only includes hail (terminal) fall velocity in its
+    current implementation, and NO VERTICAL AIR MOTION!
+    If vertical_wind=True: Also include retrieved vertical windspeeds.
     This is only relevant for the properties like hit rate or kinetic energy,
     where hailstone fall speeds enter the calculation.
     """
-
-    # Split settings needed for calculating HSD characteristic properties
-    aspect_ratio = scattering_averages['aspect_ratio']
-    ice_fraction = scattering_averages['ice_fraction']
+    
     # Separate input data for further analysis
     diameters = hsd_data['hsd_sizes']
     binned_hsd = hsd_data['hsd_frequencies']
@@ -124,8 +123,15 @@ def hsd_characteristics(hsd_data, scattering_averages):
     velocities = helper.hail_size_to_velocity(
         diameters, heights_above_radar=heights_valid,
         alt_radar=radar_height, vD_relation=vD_mode)
+    # Add retrieved vertical windspeeds (negative convention), if selected
+    if vertical_wind:
+        v_wind = hsd_data['vertical_windspeeds']
+        windspeeds = v_wind.reshape((v_wind.size,1)) 
+        velocities = velocities - windspeeds
+        # No contribution of ascending (velocities < 0) hailstones
+        velocities[velocities<0] = 0
     
-    # Initialize output array for all 13 properties:
+    # Initialize output array for all 14 properties:
     hsd_properties = np.full((binned_hsd.shape[0], 14), np.nan)
     
     # Loop over all height levels
@@ -263,7 +269,7 @@ def hsd_characteristics(hsd_data, scattering_averages):
     return properties_output
 
 
-def get_properties(hsd_retrievals, hsd_fits, scattering_averages):
+def get_properties(hsd_retrievals, hsd_fits, analysis_settings):
     """
     Calculate characteristic hail properties for retrieved HSDs and fits.
     """
@@ -276,14 +282,17 @@ def get_properties(hsd_retrievals, hsd_fits, scattering_averages):
     gamma_fits = hsd_fits['gamma_fits']
     
     # Calculate characteristic hail properties
+    ar = analysis_settings['aspect_ratio']
+    ice_frac = analysis_settings['ice_fraction']
+    vwind = analysis_settings['include_wind']
     properties_retrievals = hsd_characteristics(
-        hsd_retrievals, scattering_averages)
+        hsd_retrievals, ar, ice_frac, vertical_wind=vwind)
     properties_logfit = hsd_characteristics(
-        exp_logfits, scattering_averages)
+        exp_logfits, ar, ice_frac, vertical_wind=vwind)
     properties_linfit = hsd_characteristics(
-        exp_linfits, scattering_averages)
+        exp_linfits, ar, ice_frac, vertical_wind=vwind)
     properties_gammafit = hsd_characteristics(
-        gamma_fits, scattering_averages)
+        gamma_fits, ar, ice_frac, vertical_wind=vwind)
     
     # Collect results in compact form
     hail_characteristics = dict(
@@ -478,6 +487,24 @@ def spectra_selection(hsd_data, heights_subset):
     return spectra_selected, velocities_selected
 
 
+def property_selection(property_data, hsd_data, heights_subset):
+    """
+    Select subset of hail_properties from hail heights.
+    """
+    
+    detailed_properties = dict()
+    selection = np.isin(hsd_data['hsd_heights'], heights_subset)
+    for key in property_data:
+        properties = property_data[key]['hsd_properties']
+        names = property_data[key]['property_names']
+        properties_selected = properties[selection,:]
+        detailed_properties[key] = dict()
+        detailed_properties[key]['hsd_properties'] = properties_selected
+        detailed_properties[key]['property_names'] = names
+    
+    return detailed_properties
+
+
 def get_details(
         hail_timestamp, input_directory, hsd_retrievals,
         hsd_fits, hsd_properties, analysis_settings):
@@ -526,6 +553,12 @@ def get_details(
         hsd_retrievals,
         analysis_heights)
     
+    # Hail characteristics, only at manually selected subset of hail heights
+    properties = property_selection(
+        hsd_properties,
+        hsd_retrievals,
+        analysis_heights)
+    
     # Collect results in compact form
     hail_details = dict(
         statistics=stats,
@@ -535,7 +568,8 @@ def get_details(
         hsd_fits_parameters=fit_parameters,
         hail_dBZ_spectra=spectra,
         hail_velocity_spectra=velocities,
-        detailed_heights=analysis_heights)
+        detailed_heights=analysis_heights,
+        detailed_hail_properties=properties)
   
     return hail_details
 

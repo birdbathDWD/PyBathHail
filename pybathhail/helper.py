@@ -66,7 +66,8 @@ def split_hail_settings(all_settings):
         aspect_ratio=all_settings['aspect_ratio'],
         ice_fraction=all_settings['ice_fraction'],
         detailed_analysis=all_settings['detailed_analysis'],
-        height_selection=all_settings['height_selection'],)
+        height_selection=all_settings['height_selection'],
+        include_wind=all_settings['include_wind'])
                  
     return signal_settings, hail_specifics, model_settings, analysis_settings
 
